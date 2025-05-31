@@ -1,0 +1,732 @@
+
+import React, { useState } from 'react';
+import axios from 'axios';
+
+export function CreateRequest() {
+  const [file, setFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState('');
+  const [predictedType, setPredictedType] = useState('');
+  const [treatment, setTreatment] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState(null);
+  const [formData, setFormData] = useState({
+    wasteType: '',
+    specialInstructions: '',
+  });
+
+  function onFileChange(e) {
+    const f = e.target.files[0];
+    if (!f) return;
+    setFile(f);
+    setPreviewUrl(URL.createObjectURL(f));
+    setMessage(null);
+  }
+
+  async function classifyImage() {
+    if (!file) return;
+    setLoading(true);
+    setMessage(null);
+
+    try {
+      const data = new FormData();
+      data.append('image', file);
+      console.log('Uploading file:', file.name, file.type);
+
+      const resp = await axios.post('http://localhost:4000/api/classify', data, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+
+      const { label, treatment } = resp.data;
+      setPredictedType(label);
+      setTreatment(treatment);
+
+      setFormData({
+        wasteType: label,
+        specialInstructions: Array.isArray(treatment)
+          ? `Recommended:\n- ${treatment.join('\n- ')}`
+          : `Recommended: ${treatment}`,
+      });
+    } catch (err) {
+      console.error(err);
+      setMessage('⚠️ Classification failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function submitRequest() {
+    console.log('Submitting Request:', formData);
+    setMessage('✅ Request submitted (logged to console). You can connect this to your real endpoint.');
+  }
+
+  return (
+    <div className="p-6 max-w-6xl mx-auto">
+      <h1 className="text-3xl font-bold text-gray-800 mb-8">Create Waste Disposal Request</h1>
+
+      {message && (
+        <div className="mb-6 p-4 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 rounded">
+          {message}
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Left Column - Image Upload and Classification */}
+        <div className="bg-white p-6 rounded-xl shadow-md">
+          <h2 className="text-xl font-semibold text-gray-700 mb-4">Waste Image Analysis</h2>
+          
+          <div className="space-y-6">
+            {/* Image Upload */}
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
+              <label className="block mb-2">
+                <span className="text-gray-700 font-medium">Upload Waste Image</span>
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  onChange={onFileChange} 
+                  className="block w-full mt-1 text-sm text-gray-500
+                    file:mr-4 file:py-2 file:px-4
+                    file:rounded-md file:border-0
+                    file:text-sm file:font-semibold
+                    file:bg-blue-50 file:text-blue-700
+                    hover:file:bg-blue-100"
+                />
+              </label>
+              
+              {previewUrl && (
+                <div className="mt-4 flex justify-center">
+                  <img 
+                    src={previewUrl} 
+                    alt="Waste preview" 
+                    className="max-h-64 rounded-lg object-contain border border-gray-200"
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Classification Button */}
+            <button
+              onClick={classifyImage}
+              disabled={!file || loading}
+              className={`w-full py-3 px-4 rounded-lg font-medium transition-all
+                ${!file || loading ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 
+                  'bg-blue-600 hover:bg-blue-700 text-white shadow-md hover:shadow-lg'}`}
+            >
+              {loading ? (
+                <span className="flex items-center justify-center">
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Analyzing...
+                </span>
+              ) : 'Analyze Waste Image'}
+            </button>
+
+            {/* Results */}
+            {predictedType && (
+              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-800 mb-3">Analysis Results</h3>
+                <div className="space-y-2">
+                  <div className="flex">
+                    <span className="font-medium text-gray-700 w-32">Waste Type:</span>
+                    <span className="text-gray-800">{predictedType}</span>
+                  </div>
+                  <div className="flex items-start">
+                    <span className="font-medium text-gray-700 w-32">Treatment:</span>
+                    <div className="flex-1">
+                      {Array.isArray(treatment) ? (
+                        <ul className="list-disc list-inside space-y-1">
+                          {treatment.map((item, i) => (
+                            <li key={i} className="text-gray-800">{item}</li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="text-gray-800">{treatment}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Right Column - Form Fields */}
+        <div className="bg-white p-6 rounded-xl shadow-md">
+          <h2 className="text-xl font-semibold text-gray-700 mb-4">Disposal Request Details</h2>
+          
+          <div className="space-y-6">
+            <div>
+              <label className="block text-gray-700 font-medium mb-2">Waste Type</label>
+              <input
+                type="text"
+                value={formData.wasteType}
+                onChange={(e) => setFormData({ ...formData, wasteType: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="e.g. Biomedical Waste, Chemical Waste"
+              />
+            </div>
+
+            <div>
+              <label className="block text-gray-700 font-medium mb-2">Special Instructions</label>
+              <textarea
+                rows={8}
+                value={formData.specialInstructions}
+                onChange={(e) => setFormData({ ...formData, specialInstructions: e.target.value })}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Enter any special handling instructions, safety precautions, or additional details about the waste..."
+              />
+              <p className="mt-1 text-sm text-gray-500">
+                Include any relevant details about quantity, storage conditions, or specific hazards.
+              </p>
+            </div>
+
+            <div className="pt-4">
+              <button
+                onClick={submitRequest}
+                className="w-full py-3 px-4 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all"
+              >
+                Submit Disposal Request
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+
+
+import { useNavigate } from 'react-router-dom';
+import { BookOpen, PlayCircle, Download } from 'lucide-react'; // Added Download to imports
+import { useStore } from './StoreContext';
+import certificateBg from './certificate-bg.jpg';
+import { jsPDF } from "jspdf";
+
+
+export function HomePage() {
+  const navigate = useNavigate();
+  const { getVideoProgress, getPdfProgress, getOverallProgress,quizScore } = useStore();
+  // const quizScore = getQuizScore();//
+
+  // Get progress data from context
+  const videoProgress = getVideoProgress();
+  const pdfProgress = getPdfProgress();
+  const overallProgress = getOverallProgress();
+
+  
+
+const modules = [
+  {
+    title: '🎥 Video Modules',
+    description: `Completed ${videoProgress.completed} of ${videoProgress.total} videos`,
+    icon: <PlayCircle className="w-10 h-10 text-blue-600" />,
+    onClick: () => navigate('/videos'),
+  },
+  {
+    title: '📄 PDF Modules',
+    description: `Completed ${pdfProgress.completed} of ${pdfProgress.total} PDFs`,
+    icon: <BookOpen className="w-10 h-10 text-green-600" />,
+    onClick: () => navigate('/pdfs'),
+  },
+];
+
+if (overallProgress.percentage >= 100) {
+  modules.push({
+    title: '📝 Quiz',
+    description: 'Attempt the final quiz to test your knowledge',
+    icon: <BookOpen className="w-10 h-10 text-purple-600" />,
+    onClick: () => navigate('/quiz'),  // Route must be defined in your app
+  });
+}
+
+  const handleDownloadCertificate = () => {
+    // Implement your certificate download logic here
+    const userName = "Rohan Wagh";
+    const imgUrl = "/certificate-bg.jpg";
+
+
+    // add bg 
+    const img = new Image();
+    img.src = imgUrl;
+
+
+    img.onload = () => {
+      const doc = new jsPDF({
+        orientation: "landscape",
+        unit: "px",
+        format: [img.width, img.height], // use image dimensions
+      });
+    
+
+
+      doc.addImage(img, "JPEG", 0, 0, img.width, img.height);
+
+
+      // Overlay the name text
+      doc.setFont("Helvetica", "bold");
+      doc.setFontSize(32);
+      doc.setTextColor("#4a2f1f"); // dark brown to match your design
+
+      // Adjust positioning (X, Y) based on your template — tweak as needed
+      doc.text(userName, img.width / 2, 440, { align: "center" });
+
+
+      
+      // Draw text multiple times for "bolder" effect
+
+
+      doc.save("certificate.pdf");
+      console.log('Downloading certificate...');
+  
+    }
+
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 px-6 py-12">
+      <h1 className="text-4xl font-bold text-center mb-12 text-gray-800">
+        📚 Learning Dashboard
+      </h1>
+
+      {/* Overall Progress Section */}
+      <div className="max-w-5xl mx-auto mb-10 bg-white p-6 rounded-lg shadow">
+        <h2 className="text-xl font-semibold mb-2">Overall Progress</h2>
+        <div className="w-full bg-gray-200 rounded-full h-4 mb-2">
+          <div
+            className="bg-blue-600 h-4 rounded-full transition-all duration-500"
+            style={{ width: `${overallProgress.percentage}%` }}
+          ></div>
+        </div>
+        <p className="text-sm text-gray-600 mb-6">
+          Completed {overallProgress.completed} of {overallProgress.total} modules ({overallProgress.percentage}%)
+        </p>
+
+        {/* Certificate Download Section */}
+        <div className={`border rounded-lg p-4 transition-all ${overallProgress.percentage >= 100
+            ? 'border-green-400 bg-green-50'
+            : 'border-gray-300 bg-gray-50'
+          }`}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className={`p-3 rounded-full ${overallProgress.percentage >= 100
+                  ? 'bg-green-100 text-green-600'
+                  : 'bg-gray-200 text-gray-500'
+                }`}>
+                <Download size={24} />
+              </div>
+              <div>
+                <h3 className="font-medium">Course Completion Certificate</h3>
+                <p className="text-sm text-gray-600">
+                  {overallProgress.percentage >= 100
+                    ? 'Congratulations! You have completed all modules.'
+                    : `Complete all modules to unlock (${overallProgress.percentage}%)`
+                  }
+                </p>
+              </div>
+            </div>
+            <button
+  onClick={handleDownloadCertificate}
+  disabled={overallProgress.percentage < 100 || quizScore < 75}
+  className={`px-4 py-2 rounded-md font-medium transition-colors ${
+    overallProgress.percentage >= 100 && quizScore >= 75
+      ? 'bg-green-600 text-white hover:bg-green-700'
+      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+  }`}
+>
+  Download
+</button>
+
+          </div>
+        </div>
+      </div>
+
+      {/* Modules Cards */}
+      <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-10">
+        {modules.map((module, idx) => (
+          <div
+            key={idx}
+            onClick={module.onClick}
+            className="bg-white rounded-2xl p-6 shadow-md hover:shadow-xl transition cursor-pointer border hover:border-blue-400"
+          >
+            <div className="flex items-center gap-4 mb-4">
+              {module.icon}
+              <div>
+                <h2 className="text-2xl font-semibold text-gray-800">{module.title}</h2>
+                <p className="text-gray-600 mt-1">{module.description}</p>
+              </div>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+              <div
+                className={`h-2 rounded-full ${idx === 0 ? 'bg-blue-500' : 'bg-green-500'}`}
+                style={{ width: `${idx === 0 ? videoProgress.percentage : pdfProgress.percentage}%` }}
+              ></div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {overallProgress.percentage >= 100 && (
+  <div className="max-w-5xl mx-auto mt-10 bg-white p-6 rounded-lg shadow-md">
+    <h2 className="text-xl font-semibold mb-2">📝 Final Quiz</h2>
+    <p className="text-sm text-gray-600">
+  {overallProgress.percentage >= 100
+    ? quizScore >= 75
+      ? 'Congratulations! You can now download your certificate.'
+      : `You must score at least 75% in the final quiz to unlock the certificate (Your score: ${quizScore}%)`
+    : `Complete all modules to unlock (${overallProgress.percentage}%)`
+  }
+</p>
+
+    <button
+      onClick={() => navigate('/quiz')}
+      className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700"
+    >
+      Start Quiz
+    </button>
+  </div>
+)}
+
+
+    </div>
+  );
+}
+
+
+
+
+import React, { useEffect } from 'react';
+import { useStore } from './StoreContext';
+
+export function pdfModules(){
+  const { 
+    pdfModules,
+    togglePdfCompletion,
+    getPdfProgress,
+    initializePdfModules
+  } = useStore();
+
+  useEffect(() => {
+    const modules = [
+      { moduleNumber: 1, title: 'Definition, Sources and Characteristics of Healthcare Waste', pdfUrl: 'https://cdn.who.int/media/docs/default-source/wash-documents/wash-in-hcf/training-modules-in-health-care-waste-management/module-1--definitions-sources-and-characteristics-of-hc-waste.pdf?sfvrsn=1086c03f_4' },
+        { moduleNumber: 2, title: 'Health and Environmental Impacts of Healthcare Waste', pdfUrl: 'https://cdn.who.int/media/docs/default-source/wash-documents/wash-in-hcf/training-modules-in-health-care-waste-management/module-2-health-and-environmental-impacts-of-hc-waste.pdf?sfvrsn=d0c6a7c9_4' },
+        { moduleNumber: 3, title: 'International and National HCWM Laws – Legislative, Regulatory and Policy Aspects', pdfUrl: 'https://cdn.who.int/media/docs/default-source/wash-documents/wash-in-hcf/training-modules-in-health-care-waste-management/module-3---international-and-national-hcwm-laws.pdf?sfvrsn=c2b58bab_4' },
+        { moduleNumber: 4, title: 'National Healthcare Waste Management Planning', pdfUrl: 'https://cdn.who.int/media/docs/default-source/wash-documents/wash-in-hcf/training-modules-in-health-care-waste-management/module-4---national-hcw-management-planning.pdf?sfvrsn=a4b3c48d_4' },
+        { moduleNumber: 5, title: 'HCWM Planning in a Healthcare Facility', pdfUrl: 'https://cdn.who.int/media/docs/default-source/wash-documents/wash-in-hcf/training-modules-in-health-care-waste-management/module-5---hcwm-planning-in-a-health-care-facility.pdf?sfvrsn=9761e19a_4' },
+        { moduleNumber: 6, title: 'Occupational Health and Safety', pdfUrl: 'https://cdn.who.int/media/docs/default-source/wash-documents/wash-in-hcf/training-modules-in-health-care-waste-management/module-6---occupational-health-and-safety.pdf?sfvrsn=aa8e8e44_4' },
+        { moduleNumber: 7, title: 'Walkthrough of a Healthcare Facility', pdfUrl: 'https://cdn.who.int/media/docs/default-source/wash-documents/wash-in-hcf/training-modules-in-health-care-waste-management/module-7---walkthrough-of-a-health-care-facility.pdf?sfvrsn=2796879d_4' },
+        { moduleNumber: 8, title: 'Walkthrough of a Healthcare Waste Treatment Facility', pdfUrl: 'https://cdn.who.int/media/docs/default-source/wash-documents/wash-in-hcf/training-modules-in-health-care-waste-management/module-8---walkthrough-of-a-health-care-waste-treatment-facility.pdf?sfvrsn=8b467a58_4' },
+        { moduleNumber: 9, title: 'Classification of Healthcare Waste', pdfUrl: 'https://cdn.who.int/media/docs/default-source/wash-documents/wash-in-hcf/training-modules-in-health-care-waste-management/module-9---classification-of-health-care-waste.pdf?sfvrsn=dd5e4e84_4' },
+        { moduleNumber: 10, title: 'SEGREGATION OF HEALTHCARE WASTE', pdfUrl: 'https://cdn.who.int/media/docs/default-source/wash-documents/wash-in-hcf/training-modules-in-health-care-waste-management/module-9-and-10---student-guide.pdf?sfvrsn=7574f4c6_4' },
+        { moduleNumber: 11, title: 'Healthcare Waste Minimization', pdfUrl: 'https://cdn.who.int/media/docs/default-source/wash-documents/wash-in-hcf/training-modules-in-health-care-waste-management/module-11---classification-of-health-care-waste.pdf?sfvrsn=ee9ab82d_5' },
+        { moduleNumber: 12, title: 'Labeling, Handling and Collection of Healthcare Waste', pdfUrl: 'https://cdn.who.int/media/docs/default-source/wash-documents/wash-in-hcf/training-modules-in-health-care-waste-management/module-12---labeling-handling-and-collection-of-health-care-waste.pdf?sfvrsn=d8183fcd_2' },
+        { moduleNumber: 13, title: 'ON-SITE TRANSPORT AND STORAGE OF HEALTHCARE WASTES', pdfUrl: 'https://cdn.who.int/media/docs/default-source/wash-documents/wash-in-hcf/training-modules-in-health-care-waste-management/module-13---instructor-s-guide---onsite-transport-and-storage-of-health-care-waste.pdf?sfvrsn=9432aaff_2' },
+        { moduleNumber: 14, title: 'Off-site Transport and Storage of Healthcare Waste', pdfUrl: 'https://cdn.who.int/media/docs/default-source/wash-documents/wash-in-hcf/training-modules-in-health-care-waste-management/module-14---off-site-transport-and-storage-of-health-care-waste.pdf?sfvrsn=db4f438a_2' },
+        { moduleNumber: 15, title: 'Non-Incineration Treatment and Disposal of Healthcare Waste', pdfUrl: 'https://cdn.who.int/media/docs/default-source/wash-documents/wash-in-hcf/training-modules-in-health-care-waste-management/module-15---non-incineration-treatment-and-disposal-of-health-care-waste.pdf?sfvrsn=7c7132d8_2' },
+        { moduleNumber: 16, title: 'Incineration of Healthcare Waste and the Stockholm Convention Guidelines', pdfUrl: 'https://cdn.who.int/media/docs/default-source/wash-documents/wash-in-hcf/training-modules-in-health-care-waste-management/module-16---incineration-of-health-care-waste-and-the-stockholm-convention-guidelines.pdf?sfvrsn=9e98d5c2_2' },
+        { moduleNumber: 17, title: 'Management of Specific Infectious Wastes', pdfUrl: 'https://cdn.who.int/media/docs/default-source/wash-documents/wash-in-hcf/training-modules-in-health-care-waste-management/module-18---management-of-chemical-cytotoxic-pharmaceutical-and-radioactive-wastes.pdf?sfvrsn=c2ac154f_2' },
+        { moduleNumber: 18, title: 'Management of Chemical, Cytotoxic, Pharmaceutical and Radioactive Wastes', pdfUrl: 'https://cdn.who.int/media/docs/default-source/wash-documents/wash-in-hcf/training-modules-in-health-care-waste-management/module-18---management-of-chemical-cytotoxic-pharmaceutical-and-radioactive-wastes.pdf?sfvrsn=c2ac154f_2' },
+        { moduleNumber: 19, title: 'Rationale for Mercury-Free Health Care', pdfUrl: 'https://cdn.who.int/media/docs/default-source/wash-documents/wash-in-hcf/training-modules-in-health-care-waste-management/module-19---rationale-for-mercury-free-health-care.pdf?sfvrsn=cfcc6b28_2' },
+        { moduleNumber: 20, title: 'Management and Storage of Mercury Waste', pdfUrl: 'https://cdn.who.int/media/docs/default-source/wash-documents/wash-in-hcf/training-modules-in-health-care-waste-management/module-20---management-and-storage-of-mercury-waste.pdf?sfvrsn=f1aeb810_2' },
+        { moduleNumber: 21, title: 'Non-Mercury Alternatives', pdfUrl: 'https://cdn.who.int/media/docs/default-source/wash-documents/wash-in-hcf/training-modules-in-health-care-waste-management/module-21---non-mercury-alternatives.pdf?sfvrsn=1c2426fb_2' },
+        { moduleNumber: 22, title: 'Contingency Planning and Emergency Response to Healthcare Waste Spill', pdfUrl: 'https://cdn.who.int/media/docs/default-source/wash-documents/wash-in-hcf/training-modules-in-health-care-waste-management/module-22---contingenca-planing-and-emergency-response-to-health-care-waste-spills.pdf?sfvrsn=2bf8e26_2' },
+        { moduleNumber: 23, title: 'Sustainable Development Goals and Health', pdfUrl: 'https://cdn.who.int/media/docs/default-source/wash-documents/wash-in-hcf/training-modules-in-health-care-waste-management/module-22---contingenca-planing-and-emergency-response-to-health-care-waste-spills.pdf?sfvrsn=2bf8e26_2' },
+        { moduleNumber: 24, title: 'Institutionalization of HCWM – Organization, Training, Financing and Quality Improvement', pdfUrl: 'https://cdn.who.int/media/docs/default-source/wash-documents/wash-in-hcf/training-modules-in-health-care-waste-management/module-24---institutionalization-of-hcwm---organizations-training-financing-and-quality-improvement.pdf?sfvrsn=8a412e94_2' },
+        { moduleNumber: 25, title: 'Hospital Hygiene, Infection Control and Healthcare Waste Management', pdfUrl: 'https://cdn.who.int/media/docs/default-source/wash-documents/wash-in-hcf/training-modules-in-health-care-waste-management/module-25---hospital-hygiene-infection-control-and-health-care-waste-management.pdf?sfvrsn=fc978af7_2' },
+    ];
+    initializePdfModules(modules);
+  }, [initializePdfModules]);
+
+  const { completed, total, percentage } = getPdfProgress();
+
+  const handleModuleClick = (index) => {
+    window.open(pdfModules.modules[index].pdfUrl, '_blank');
+    togglePdfCompletion(index);
+  };
+
+  return (
+    <div className="p-6 max-w-4xl mx-auto">
+      <h2 className="text-3xl font-bold mb-4 text-center text-gray-800">
+        📚 Healthcare Waste Management Training Modules
+      </h2>
+
+      {/* Progress Bar */}
+      <div className="mb-6">
+        <div className="flex justify-between items-center mb-1">
+          <span className="text-sm font-medium text-gray-700">
+            Completed {completed}/{total}
+          </span>
+          <span className="text-sm font-semibold text-blue-700">
+            {percentage}%
+          </span>
+        </div>
+        <div className="w-full bg-gray-200 rounded-full h-4">
+          <div
+            className="bg-green-500 h-4 rounded-full transition-all duration-500"
+            style={{ width: `${percentage}%` }}
+          ></div>
+        </div>
+      </div>
+
+      {/* Modules */}
+      <div className="space-y-4">
+        {pdfModules.modules.map((mod, index) => (
+          <div
+            key={index}
+            className="flex items-center justify-between bg-white shadow-md rounded-lg p-4 hover:shadow-lg transition duration-300"
+          >
+            <div className="flex items-center space-x-3">
+              <input
+                type="checkbox"
+                className="form-checkbox h-5 w-5 text-green-600"
+                checked={!!pdfModules.completed[index]}
+                readOnly
+              />
+              <button
+                onClick={() => handleModuleClick(index)}
+                className="text-left text-lg font-medium text-blue-700 hover:underline"
+              >
+                Module {mod.moduleNumber} – {mod.title}
+              </button>
+            </div>
+            {!!pdfModules.completed[index] && (
+              <span className="text-green-600 text-xl">✔️</span>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+
+import React, { useState } from 'react';
+import { useStore } from './StoreContext';
+import { CheckCircle, XCircle } from 'lucide-react';
+
+
+
+export default function Quiz() {
+
+    const dummyQuestions = [
+ {
+    question: "What does BMW Rules 2016 stand for in India?",
+    options: [
+      "Biohazardous Material Waste Rules",
+      "Biomedical Waste Management Rules",
+      "Business Medical Waste Rules",
+      "Basic Medical Waste Regulations"
+    ],
+    answer: "Biomedical Waste Management Rules",
+  },
+
+ {
+    question: "Which of the following is a key component of national HCWM planning?",
+    options: ["IT infrastructure", "Public transport", "Waste categorization", "Film certification"],
+    answer: "Waste categorization",
+  },
+{
+    question: "What is the first step in developing a national HCWM plan?",
+    options: ["Waste disposal", "Policy evaluation", "Situation analysis", "Site cleaning"],
+    answer: "Situation analysis",
+  },
+  {
+    question: "Which waste category includes body parts and organs?",
+    options: ["Sharps Waste", "Pharmaceutical Waste", "Pathological Waste", "Non-Hazardous Waste"],
+    answer: "Pathological Waste",
+  },
+   {
+    question: "Which of the following is an impact of improper healthcare waste disposal?",
+    options: ["Improved air quality", "Increased biodiversity", "Disease transmission", "Economic growth"],
+    answer: "Disease transmission",
+  },
+];
+
+  const [currentQ, setCurrentQ] = useState(0);
+  const [score, setScore] = useState(0);
+  const [selected, setSelected] = useState(null);
+  const [submitted, setSubmitted] = useState(false);
+
+  const { updateQuizScore } = useStore();
+
+  const question = dummyQuestions[currentQ];
+
+  const handleOptionClick = (option) => {
+    if (!submitted) setSelected(option);
+  };
+
+  const handleNext = () => {
+    if (submitted) {
+      if (currentQ + 1 < dummyQuestions.length) {
+        setCurrentQ(currentQ + 1);
+        setSelected(null);
+        setSubmitted(false);
+      } else {
+        // Quiz finished
+        const percentage = Math.round((score / dummyQuestions.length) * 100);
+        updateQuizScore(percentage);
+        alert(`Quiz Completed! Your score: ${percentage}%`);
+      }
+    } else {
+      setSubmitted(true);
+      if (selected === question.answer) {
+        setScore(score + 1);
+      }
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-indigo-100 to-white flex items-center justify-center p-4">
+      <div className="max-w-xl w-full bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+        <h2 className="text-2xl font-bold mb-4 text-gray-800">📝 Quiz</h2>
+        <p className="text-gray-600 mb-2 font-medium">
+          Question {currentQ + 1} of {dummyQuestions.length}
+        </p>
+
+        <div className="mb-6">
+          <h3 className="text-lg font-semibold text-gray-700 mb-3">
+            {question.question}
+          </h3>
+          <div className="grid gap-3">
+            {question.options.map((option, idx) => {
+              const isCorrect = submitted && option === question.answer;
+              const isWrong = submitted && selected === option && option !== question.answer;
+
+              return (
+                <button
+                  key={idx}
+                  onClick={() => handleOptionClick(option)}
+                  className={`w-full text-left px-4 py-2 border rounded-lg transition 
+                    ${selected === option ? 'border-indigo-500 bg-indigo-50' : 'border-gray-300'}
+                    ${isCorrect ? 'bg-green-100 border-green-400 text-green-800' : ''}
+                    ${isWrong ? 'bg-red-100 border-red-400 text-red-800' : ''}
+                  `}
+                  disabled={submitted}
+                >
+                  {option}
+                  {isCorrect && <CheckCircle className="inline ml-2 w-5 h-5 text-green-600" />}
+                  {isWrong && <XCircle className="inline ml-2 w-5 h-5 text-red-600" />}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="flex justify-end">
+          <button
+            onClick={handleNext}
+            disabled={selected === null && !submitted}
+            className="bg-indigo-600 text-white px-5 py-2 rounded-md hover:bg-indigo-700 transition"
+          >
+            {submitted
+              ? currentQ + 1 < dummyQuestions.length
+                ? "Next"
+                : "Finish"
+              : "Submit"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+import React, { useEffect } from 'react';
+import { CheckCircle } from 'lucide-react';
+import { useStore } from './StoreContext';
+import VideoModules from './Videos';
+
+export default function VideoModules () {
+  const { 
+    videoModules,
+    completeVideo,
+    getVideoProgress,
+    initializeVideoModules
+  } = useStore();
+
+  useEffect(() => {
+    const videos = [
+      { id: 'N1FeTxiXcgI', title: 'Introduction to Healthcare Waste Management' },
+      { id: 'ywqMGf_9irI', title: 'Types of Healthcare Waste' },
+      { id: 'VGYCNG-vanE', title: 'Segregation of Waste at Source' },
+      { id: 'o8apda1gZOI', title: 'Storage and Transportation' },
+      { id: 'j8Jc0WUHfrU', title: 'Waste Treatment Techniques' },
+      { id: '1-GPE0kOqH4', title: 'Training & Awareness Summary' },
+    ];
+    initializeVideoModules(videos);
+  }, [initializeVideoModules]);
+
+  const { completed, total, percentage } = getVideoProgress();
+
+  const handleVideoClick = (index) => {
+    window.open(`https://www.youtube.com/watch?v=${videoModules.videos[index].id}`, '_blank');
+    completeVideo(index);
+  };
+
+  return (
+    <div className="p-6 sm:p-10 max-w-7xl mx-auto bg-gray-50 min-h-screen">
+      {/* Page Header */}
+      <div className="text-center mb-10">
+        <h1 className="text-4xl font-extrabold text-blue-800 mb-2">
+          🏥 Healthcare Waste Management Training
+        </h1>
+        <p className="text-gray-600 text-lg">
+          Enhance your understanding through this step-by-step video course.
+        </p>
+      </div>
+
+      {/* Progress Bar */}
+      <div className="mb-10">
+        <div className="flex justify-between items-center mb-2 text-sm font-medium text-gray-700">
+          <span>Completed: {completed} of {total}</span>
+          <span>{percentage}% Completed</span>
+        </div>
+        <div className="w-full bg-gray-300 rounded-full h-4 overflow-hidden shadow-inner">
+          <div
+            className="bg-gradient-to-r from-emerald-400 to-green-600 h-full transition-all duration-700"
+            style={{ width: `${percentage}%` }}
+          ></div>
+        </div>
+      </div>
+
+      {/* Video Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        {videoModules.videos.map((video, index) => {
+          const thumbnailUrl = `https://img.youtube.com/vi/${video.id}/mqdefault.jpg`;
+          const isCompleted = !!videoModules.completed[index];
+
+          return (
+            <div
+              key={video.id}
+              onClick={() => handleVideoClick(index)}
+              className={`relative group rounded-xl overflow-hidden bg-white shadow-lg hover:shadow-2xl transition-transform transform hover:scale-[1.02] cursor-pointer border ${
+                isCompleted ? 'border-green-400' : 'border-transparent'
+              }`}
+            >
+              <img
+                src={thumbnailUrl}
+                alt={video.title}
+                className="w-full h-48 object-cover rounded-t-xl"
+              />
+              <div className="p-4">
+                <h3 className="text-lg font-semibold text-gray-800 group-hover:text-blue-700">
+                  {video.title}
+                </h3>
+              </div>
+
+              {/* Completed Badge */}
+              {isCompleted && (
+                <div className="absolute top-3 left-3 bg-green-100 border border-green-400 text-green-700 text-xs font-semibold rounded-full px-2 py-1 shadow flex items-center gap-1">
+                  <CheckCircle size={14} /> Completed
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+

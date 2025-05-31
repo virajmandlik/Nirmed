@@ -25,7 +25,7 @@ const Layout: React.FC<LayoutProps> = ({ children, title }) => {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
               <Link to="/" className="text-2xl font-bold text-blue-600">
-                WasteCare
+                Nirmed
               </Link>
               <span className="ml-4 text-gray-600">|</span>
               <span className="ml-4 text-lg font-medium text-gray-900">{title}</span>
@@ -36,7 +36,7 @@ const Layout: React.FC<LayoutProps> = ({ children, title }) => {
                 <Bell className="h-5 w-5" />
               </Button>
               
-              <Link to="/training">
+              <Link to="/learning">
                 <Button variant="ghost" size="sm">
                   Training
                 </Button>

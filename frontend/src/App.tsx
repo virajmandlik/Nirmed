@@ -1,4 +1,4 @@
-
+import React from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -15,56 +15,61 @@ import DisposalStaffDashboard from "./pages/DisposalStaffDashboard";
 import Training from "./pages/Training";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
+import { StoreProvider } from './contexts/StoreContext';
+import LearningModule from './components/learning/LearningModule';
 
 const queryClient = new QueryClient();
 
-const App = () => (
+const App: React.FC = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
       <Sonner />
       <AuthProvider>
         <WasteProvider>
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route 
-                path="/user1" 
-                element={
-                  <ProtectedRoute requiredRole="medical">
-                    <MedicalStaffDashboard />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/user2" 
-                element={
-                  <ProtectedRoute requiredRole="disposal">
-                    <DisposalStaffDashboard />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/training" 
-                element={
-                  <ProtectedRoute>
-                    <Training />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/profile" 
-                element={
-                  <ProtectedRoute>
-                    <Profile />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
+          <StoreProvider>
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route 
+                  path="/user1" 
+                  element={
+                    <ProtectedRoute requiredRole="medical">
+                      <MedicalStaffDashboard />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/user2" 
+                  element={
+                    <ProtectedRoute requiredRole="disposal">
+                      <DisposalStaffDashboard />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/learning/*" 
+                  element={
+                    <ProtectedRoute>
+                      <LearningModule />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/profile" 
+                  element={
+                    <ProtectedRoute>
+                      <Profile />
+                    </ProtectedRoute>
+                  } 
+                />
+                {/* <Route path="/learning/*" element={<LearningModule />} /> */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </StoreProvider>
         </WasteProvider>
       </AuthProvider>
     </TooltipProvider>
