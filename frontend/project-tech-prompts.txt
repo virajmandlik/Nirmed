@@ -1,0 +1,49 @@
+Create a complete Node.js Express backend for the simplified Healthcare Waste Management System with:
+
+SYSTEM REQUIREMENTS:
+Two-user system: Medical Staff (creates waste requests) and Disposal Staff (processes requests)
+
+DATABASE MODELS:
+1. User: { email, password, firstName, lastName, userType: 'medical_staff'|'disposal_staff', isActive, createdAt }
+2. WasteRequest: { requestId, createdBy, wasteType, quantity, unit, department, urgency, instructions, status: 'pending'|'processing'|'completed', assignedTo, disposalMethod, completedAt, environmentalImpact, createdAt }
+3. TrainingModule: { title, description, content, userType, duration, questions, createdAt }
+4. UserProgress: { userId, moduleId, completedAt, score, certificateUrl }
+5. DisposalMethod: { wasteType, method, environmentalImpact, cost, instructions }
+
+API ENDPOINTS:
+Authentication:
+- POST /api/auth/register
+- POST /api/auth/login
+- GET /api/auth/profile
+
+Waste Requests (User1 - Medical Staff):
+- GET /api/requests/my-requests
+- POST /api/requests/create
+- GET /api/requests/:id
+
+Waste Processing (User2 - Disposal Staff):
+- GET /api/requests/pending
+- PUT /api/requests/:id/assign
+- PUT /api/requests/:id/complete
+- GET /api/disposal-methods
+
+Training System:
+- GET /api/training/modules
+- POST /api/training/complete
+- GET /api/training/progress
+
+Reports & Analytics:
+- GET /api/reports/environmental-impact
+- GET /api/reports/disposal-summary
+- GET /api/dashboard/stats
+
+FEATURES:
+- JWT authentication with role-based access
+- Real-time request status updates
+- Automated environmental impact calculations
+- Training progress tracking
+- Input validation and error handling
+- Request assignment system
+- Disposal method recommendations
+
+Include complete server setup, models, controllers, routes, and middleware with proper error handling.

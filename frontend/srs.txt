@@ -1,0 +1,651 @@
+# Healthcare Waste Management System
+## Software Requirements Specification (SRS) Document
+### Simplified Two-User Approach
+
+**Version:** 1.0  
+**Date:** May 30, 2025  
+**Project Type:** Hackathon Implementation  
+
+---
+
+## Table of Contents
+1. [Introduction](#1-introduction)
+2. [System Overview](#2-system-overview)
+3. [User Requirements](#3-user-requirements)
+4. [Functional Requirements](#4-functional-requirements)
+5. [Non-Functional Requirements](#5-non-functional-requirements)
+6. [System Architecture](#6-system-architecture)
+7. [Database Design](#7-database-design)
+8. [User Interface Design](#8-user-interface-design)
+9. [API Specifications](#9-api-specifications)
+10. [Implementation Plan](#10-implementation-plan)
+11. [Testing Strategy](#11-testing-strategy)
+
+---
+
+## 1. Introduction
+
+### 1.1 Purpose
+This document specifies requirements for a simplified Healthcare Waste Management System designed to streamline waste disposal processes between hospital medical staff and waste disposal personnel while ensuring compliance and environmental responsibility.
+
+### 1.2 Scope
+The system serves healthcare facilities by connecting medical staff who generate waste with disposal staff who process it, incorporating training modules and environmental impact tracking.
+
+### 1.3 Technology Stack
+- **Frontend:** React.js with Material-UI/Tailwind CSS
+- **Backend:** Node.js with Express.js
+- **Database:** MongoDB with Mongoose
+- **Authentication:** JWT (JSON Web Tokens)
+- **Real-time Updates:** Polling/WebSocket simulation
+- **Deployment:** Vercel/Netlify (Frontend), Heroku/Railway (Backend)
+
+### 1.4 Key Objectives Addressed
+- ✅ **Biohazard Disposal & Compliance:** Proper waste categorization and disposal protocols
+- ✅ **Recycling & Waste Reduction:** Environmental impact tracking and optimization
+- ✅ **Optimization of Waste Storage & Disposal:** Efficient request-response workflow
+- ✅ **Staff Education & Environmental Awareness:** Integrated training system
+
+---
+
+## 2. System Overview
+
+### 2.1 Problem Statement
+Healthcare facilities need an efficient system to manage waste disposal requests from medical staff to disposal personnel, ensuring proper categorization, timely processing, regulatory compliance, and staff education.
+
+### 2.2 Solution Overview
+A two-user web application that creates a seamless workflow between waste generators (medical staff) and waste processors (disposal staff), with integrated training and environmental impact monitoring.
+
+### 2.3 User Types
+
+#### 2.3.1 User 1 - Medical Staff (Hospital Personnel)
+**Primary Role:** Generate and track waste disposal requests
+**Key Responsibilities:**
+- Create waste disposal requests with proper categorization
+- Monitor request status and completion
+- Complete mandatory training modules
+- Track environmental impact of generated waste
+
+#### 2.3.2 User 2 - Waste Disposal Staff
+**Primary Role:** Process and complete waste disposal requests
+**Key Responsibilities:**
+- Receive and review pending disposal requests
+- Execute proper disposal methods based on waste type
+- Mark requests as completed with disposal details
+- Maintain compliance with disposal protocols
+
+---
+
+## 3. User Requirements
+
+### 3.1 Medical Staff Requirements
+- **UR1.1:** Easily create waste disposal requests with categorization
+- **UR1.2:** Track status of submitted requests in real-time
+- **UR1.3:** Access training materials for proper waste handling
+- **UR1.4:** View environmental impact of waste generation
+- **UR1.5:** Receive notifications about request updates
+
+### 3.2 Waste Disposal Staff Requirements
+- **UR2.1:** View all pending disposal requests in organized manner
+- **UR2.2:** Access proper disposal methods for each waste type
+- **UR2.3:** Update request status and add completion details
+- **UR2.4:** Track disposal efficiency and environmental metrics
+- **UR2.5:** Complete training on disposal protocols and safety
+
+### 3.3 System Requirements
+- **UR3.1:** Secure authentication for both user types
+- **UR3.2:** Real-time synchronization between users
+- **UR3.3:** Mobile-responsive interface for field use
+- **UR3.4:** Training system with progress tracking
+- **UR3.5:** Environmental impact calculation and reporting
+
+---
+
+## 4. Functional Requirements
+
+### 4.1 Authentication System
+- **FR1.1:** User registration with role selection (Medical Staff/Disposal Staff)
+- **FR1.2:** Secure login with JWT token-based authentication
+- **FR1.3:** Profile management and password reset functionality
+- **FR1.4:** Role-based access control and route protection
+
+### 4.2 Waste Request Management
+- **FR2.1:** Medical staff can create disposal requests with following fields:
+  - Waste type (Biohazardous, Pharmaceutical, Chemical, General)
+  - Quantity and unit of measurement
+  - Department/Location
+  - Urgency level (Low, Medium, High, Critical)
+  - Special handling instructions
+- **FR2.2:** Auto-generation of unique request ID
+- **FR2.3:** Request status tracking (Pending → Processing → Completed)
+- **FR2.4:** Request history and filtering capabilities
+
+### 4.3 Disposal Processing
+- **FR3.1:** Disposal staff can view all pending requests
+- **FR3.2:** Request assignment and processing workflow
+- **FR3.3:** Disposal method selection based on waste type
+- **FR3.4:** Completion recording with disposal details:
+  - Disposal method used
+  - Location of disposal
+  - Date and time of completion
+  - Environmental impact data
+  - Optional photo documentation
+
+### 4.4 Training System
+- **FR4.1:** Role-specific training modules:
+  - **Medical Staff:** Waste categorization, safety protocols, environmental awareness
+  - **Disposal Staff:** Disposal techniques, compliance requirements, safety procedures
+- **FR4.2:** Interactive training content with multimedia support
+- **FR4.3:** Assessment quizzes with passing requirements
+- **FR4.4:** Progress tracking and certificate generation
+- **FR4.5:** Training completion notifications and reminders
+
+### 4.5 Environmental Impact Tracking
+- **FR5.1:** Automatic calculation of environmental impact per waste type
+- **FR5.2:** Aggregated environmental metrics and trends
+- **FR5.3:** Cost analysis for different disposal methods
+- **FR5.4:** Sustainability reporting and recommendations
+
+### 4.6 Notification System
+- **FR6.1:** Real-time notifications for request status updates
+- **FR6.2:** Training deadline reminders
+- **FR6.3:** System alerts for compliance issues
+- **FR6.4:** Dashboard notifications for pending actions
+
+### 4.7 Reporting & Analytics
+- **FR7.1:** Individual dashboards with relevant metrics
+- **FR7.2:** Waste generation and disposal trends
+- **FR7.3:** Training completion reports
+- **FR7.4:** Environmental impact summaries
+- **FR7.5:** Export functionality for reports
+
+---
+
+## 5. Non-Functional Requirements
+
+### 5.1 Performance Requirements
+- **NFR1.1:** Page load time < 3 seconds
+- **NFR1.2:** API response time < 2 seconds
+- **NFR1.3:** Support for 50+ concurrent users
+- **NFR1.4:** Database query optimization for large datasets
+
+### 5.2 Security Requirements
+- **NFR2.1:** Password encryption using bcrypt
+- **NFR2.2:** JWT token expiration and refresh mechanism
+- **NFR2.3:** Input validation and sanitization
+- **NFR2.4:** HTTPS encryption for data transmission
+- **NFR2.5:** Role-based access control enforcement
+
+### 5.3 Usability Requirements
+- **NFR3.1:** Intuitive user interface with minimal training
+- **NFR3.2:** Mobile-responsive design (Bootstrap/Tailwind)
+- **NFR3.3:** Accessibility compliance (WCAG 2.1 Level AA)
+- **NFR3.4:** Multi-browser compatibility
+- **NFR3.5:** Error handling with user-friendly messages
+
+### 5.4 Reliability Requirements
+- **NFR4.1:** 99% system uptime availability
+- **NFR4.2:** Data backup and recovery procedures
+- **NFR4.3:** Error logging and monitoring
+- **NFR4.4:** Graceful error handling and fallbacks
+
+### 5.5 Scalability Requirements
+- **NFR5.1:** Modular architecture for future enhancements
+- **NFR5.2:** Database indexing for performance optimization
+- **NFR5.3:** Caching strategies for frequently accessed data
+- **NFR5.4:** API versioning for backward compatibility
+
+---
+
+## 6. System Architecture
+
+### 6.1 High-Level Architecture
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Frontend      │    │   Backend       │    │   Database      │
+│   (React.js)    │◄──►│   (Node.js)     │◄──►│   (MongoDB)     │
+│                 │    │                 │    │                 │
+│ ┌─────────────┐ │    │ ┌─────────────┐ │    │ ┌─────────────┐ │
+│ │ User1 App   │ │    │ │ Auth API    │ │    │ │ Users       │ │
+│ │ (Medical)   │ │    │ │ Request API │ │    │ │ Requests    │ │
+│ └─────────────┘ │    │ │ Training API│ │    │ │ Training    │ │
+│ ┌─────────────┐ │    │ │ Reports API │ │    │ │ Progress    │ │
+│ │ User2 App   │ │    │ └─────────────┘ │    │ │ Methods     │ │
+│ │ (Disposal)  │ │    │                 │    │ └─────────────┘ │
+│ └─────────────┘ │    │                 │    │                 │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+```
+
+### 6.2 Component Architecture
+
+#### 6.2.1 Frontend Components
+```
+src/
+├── components/
+│   ├── common/
+│   │   ├── Header.js
+│   │   ├── Sidebar.js
+│   │   ├── Notification.js
+│   │   └── LoadingSpinner.js
+│   ├── auth/
+│   │   ├── Login.js
+│   │   ├── Register.js
+│   │   └── Profile.js
+│   ├── medical-staff/
+│   │   ├── Dashboard.js
+│   │   ├── CreateRequest.js
+│   │   ├── RequestList.js
+│   │   └── TrainingModules.js
+│   └── disposal-staff/
+│       ├── Dashboard.js
+│       ├── PendingRequests.js
+│       ├── ProcessRequest.js
+│       └── DisposalMethods.js
+├── pages/
+├── services/
+├── context/
+└── utils/
+```
+
+#### 6.2.2 Backend Services
+```
+src/
+├── controllers/
+│   ├── authController.js
+│   ├── requestController.js
+│   ├── trainingController.js
+│   └── reportController.js
+├── models/
+├── routes/
+├── middleware/
+├── services/
+└── utils/
+```
+
+---
+
+## 7. Database Design
+
+### 7.1 Database Collections
+
+#### 7.1.1 Users Collection
+```javascript
+{
+  _id: ObjectId,
+  email: String, // unique
+  password: String, // hashed with bcrypt
+  firstName: String,
+  lastName: String,
+  userType: String, // 'medical_staff' | 'disposal_staff'
+  department: String, // for medical staff
+  phone: String,
+  isActive: Boolean,
+  lastLogin: Date,
+  createdAt: Date,
+  updatedAt: Date
+}
+```
+
+#### 7.1.2 WasteRequests Collection
+```javascript
+{
+  _id: ObjectId,
+  requestId: String, // auto-generated unique ID
+  createdBy: ObjectId, // reference to Users
+  wasteType: String, // 'biohazardous', 'pharmaceutical', 'chemical', 'general'
+  quantity: Number,
+  unit: String, // 'kg', 'liters', 'pieces'
+  department: String,
+  location: String,
+  urgency: String, // 'low', 'medium', 'high', 'critical'
+  specialInstructions: String,
+  status: String, // 'pending', 'processing', 'completed'
+  assignedTo: ObjectId, // reference to disposal staff
+  disposalMethod: String,
+  disposalLocation: String,
+  completedAt: Date,
+  environmentalImpact: {
+    carbonFootprint: Number,
+    costEstimate: Number,
+    recyclingPotential: Number
+  },
+  photos: [String], // URLs to uploaded images
+  createdAt: Date,
+  updatedAt: Date
+}
+```
+
+#### 7.1.3 TrainingModules Collection
+```javascript
+{
+  _id: ObjectId,
+  title: String,
+  description: String,
+  targetUserType: String, // 'medical_staff', 'disposal_staff', 'both'
+  content: {
+    sections: [
+      {
+        title: String,
+        content: String,
+        mediaUrl: String, // video/image URLs
+        type: String // 'text', 'video', 'image'
+      }
+    ]
+  },
+  assessment: {
+    questions: [
+      {
+        question: String,
+        options: [String],
+        correctAnswer: Number,
+        explanation: String
+      }
+    ],
+    passingScore: Number
+  },
+  duration: Number, // in minutes
+  isActive: Boolean,
+  createdAt: Date,
+  updatedAt: Date
+}
+```
+
+#### 7.1.4 UserProgress Collection
+```javascript
+{
+  _id: ObjectId,
+  userId: ObjectId, // reference to Users
+  moduleId: ObjectId, // reference to TrainingModules
+  status: String, // 'started', 'completed', 'failed'
+  startedAt: Date,
+  completedAt: Date,
+  score: Number,
+  attempts: Number,
+  certificateUrl: String,
+  expiryDate: Date,
+  createdAt: Date,
+  updatedAt: Date
+}
+```
+
+#### 7.1.5 DisposalMethods Collection
+```javascript
+{
+  _id: ObjectId,
+  wasteType: String,
+  method: String,
+  description: String,
+  safetyRequirements: [String],
+  environmentalImpact: {
+    carbonFootprint: Number,
+    cost: Number,
+    sustainability: String
+  },
+  regulations: [String],
+  instructions: [String],
+  isActive: Boolean,
+  createdAt: Date,
+  updatedAt: Date
+}
+```
+
+### 7.2 Database Indexes
+```javascript
+// Performance optimization indexes
+Users: { email: 1 }, { userType: 1 }
+WasteRequests: { status: 1 }, { createdBy: 1 }, { assignedTo: 1 }, { createdAt: -1 }
+UserProgress: { userId: 1, moduleId: 1 }, { userId: 1, status: 1 }
+TrainingModules: { targetUserType: 1 }, { isActive: 1 }
+DisposalMethods: { wasteType: 1 }, { isActive: 1 }
+```
+
+---
+
+## 8. User Interface Design
+
+### 8.1 Design Principles
+- **Clean & Professional:** Medical-grade interface aesthetics
+- **Color-Coded System:** 
+  - Red: Biohazardous waste
+  - Blue: Pharmaceutical waste
+  - Orange: Chemical waste
+  - Green: General waste
+- **Status Indicators:**
+  - Yellow: Pending
+  - Orange: Processing
+  - Green: Completed
+  - Red: Overdue/Critical
+
+### 8.2 Page Layouts
+
+#### 8.2.1 Medical Staff Interface (/user1)
+```
+┌─────────────────────────────────────────────────────┐
+│ Header: Logo | Welcome, [Name] | Notifications | Profile │
+├─────────────────────────────────────────────────────┤
+│ Sidebar:                    │ Main Content Area       │
+│ - Dashboard                 │                         │
+│ - Create Request            │ Dashboard Cards:        │
+│ - My Requests              │ - Pending Requests      │
+│ - Training                 │ - Completed This Month  │
+│ - Environmental Impact     │ - Training Progress     │
+│ - Profile                  │ - Environmental Score   │
+│                            │                         │
+│                            │ Quick Actions:          │
+│                            │ [Create New Request]    │
+│                            │ [View Training]         │
+│                            │                         │
+│                            │ Recent Requests Table   │
+└────────────────────────────┴─────────────────────────┘
+```
+
+#### 8.2.2 Disposal Staff Interface (/user2)
+```
+┌─────────────────────────────────────────────────────┐
+│ Header: Logo | Welcome, [Name] | Notifications | Profile │
+├─────────────────────────────────────────────────────┤
+│ Sidebar:                    │ Main Content Area       │
+│ - Dashboard                 │                         │
+│ - Pending Requests          │ Dashboard Cards:        │
+│ - Processing                │ - Pending Count         │
+│ - Completed                │ - Today's Completed     │
+│ - Disposal Methods         │ - Processing Queue      │
+│ - Training                 │ - Efficiency Score      │
+│ - Reports                  │                         │
+│                            │ Priority Queue:         │
+│                            │ [Critical] [High] [Med] │
+│                            │                         │
+│                            │ Pending Requests List   │
+└────────────────────────────┴─────────────────────────┘
+```
+
+### 8.3 Component Specifications
+
+#### 8.3.1 Request Creation Form
+```
+Create Waste Disposal Request
+┌─────────────────────────────────────┐
+│ Waste Type: [Dropdown]              │
+│ Quantity: [Number] Unit: [Dropdown] │
+│ Department: [Text]                  │
+│ Location: [Text]                    │
+│ Urgency: [Radio Buttons]            │
+│ Special Instructions: [Textarea]    │
+│                                     │
+│ [Cancel] [Save Draft] [Submit]      │
+└─────────────────────────────────────┘
+```
+
+#### 8.3.2 Request Processing Interface
+```
+Process Request: REQ-001
+┌─────────────────────────────────────┐
+│ Waste Type: Biohazardous           │
+│ Quantity: 5 kg                     │
+│ From: Emergency Department          │
+│ Urgency: High                      │
+│ Instructions: Contains sharps       │
+│                                     │
+│ Disposal Method: [Dropdown]         │
+│ Disposal Location: [Dropdown]       │
+│ Notes: [Textarea]                   │
+│ Photo Upload: [File Input]          │
+│                                     │
+│ [Mark as Processing] [Complete]     │
+└─────────────────────────────────────┘
+```
+
+---
+
+## 9. API Specifications
+
+### 9.1 Authentication Endpoints
+
+#### POST /api/auth/register
+```javascript
+Request: {
+  email: "user@hospital.com",
+  password: "password123",
+  firstName: "John",
+  lastName: "Doe",
+  userType: "medical_staff",
+  department: "Emergency"
+}
+Response: {
+  success: true,
+  message: "User registered successfully",
+  user: { id, email, firstName, lastName, userType }
+}
+```
+
+#### POST /api/auth/login
+```javascript
+Request: {
+  email: "user@hospital.com",
+  password: "password123"
+}
+Response: {
+  success: true,
+  token: "jwt_token_here",
+  user: { id, email, firstName, lastName, userType }
+}
+```
+
+### 9.2 Waste Request Endpoints
+
+#### GET /api/requests/my-requests (Medical Staff)
+```javascript
+Response: {
+  success: true,
+  requests: [
+    {
+      requestId: "HWM-2025-001",
+      wasteType: "biohazardous",
+      quantity: 5,
+      unit: "kg",
+      status: "pending",
+      createdAt: "2025-05-30T10:00:00Z"
+    }
+  ]
+}
+```
+
+#### POST /api/requests/create (Medical Staff)
+```javascript
+Request: {
+  wasteType: "pharmaceutical",
+  quantity: 2,
+  unit: "kg",
+  department: "Pharmacy",
+  location: "Floor 2, Room 205",
+  urgency: "medium",
+  specialInstructions: "Expired medications"
+}
+Response: {
+  success: true,
+  message: "Request created successfully",
+  requestId: "HWM-2025-002"
+}
+```
+
+#### GET /api/requests/pending (Disposal Staff)
+```javascript
+Response: {
+  success: true,
+  requests: [
+    {
+      requestId: "HWM-2025-001",
+      wasteType: "biohazardous",
+      quantity: 5,
+      unit: "kg",
+      department: "Emergency",
+      urgency: "high",
+      createdAt: "2025-05-30T10:00:00Z",
+      createdBy: {
+        firstName: "Dr. Jane",
+        lastName: "Smith"
+      }
+    }
+  ]
+}
+```
+
+#### PUT /api/requests/:id/complete (Disposal Staff)
+```javascript
+Request: {
+  disposalMethod: "Autoclave sterilization",
+  disposalLocation: "Central Waste Facility",
+  notes: "Processed according to protocol HB-001"
+}
+Response: {
+  success: true,
+  message: "Request marked as completed",
+  environmentalImpact: {
+    carbonFootprint: 2.5,
+    cost: 45.00
+  }
+}
+```
+
+### 9.3 Training Endpoints
+
+#### GET /api/training/modules
+```javascript
+Response: {
+  success: true,
+  modules: [
+    {
+      id: "mod_001",
+      title: "Biohazardous Waste Handling",
+      description: "Learn proper handling of biohazardous materials",
+      duration: 30,
+      targetUserType: "medical_staff",
+      completed: false
+    }
+  ]
+}
+```
+
+#### GET /api/training/progress
+```javascript
+Response: {
+  success: true,
+  progress: [
+    {
+      moduleId: "mod_001",
+      status: "completed",
+      score: 85,
+      completedAt: "2025-05-30T14:30:00Z",
+      certificateUrl: "https://certificates.com/cert_123"
+    }
+  ]
+}
+```
+
+### 9.4 Dashboard & Reports Endpoints
+
+#### GET /api/dashboard/stats
+```javascript
+Response: {
+  success: true,
+  stats: {
+    totalR
