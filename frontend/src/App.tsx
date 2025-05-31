@@ -17,6 +17,7 @@ import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import { StoreProvider } from './contexts/StoreContext';
 import LearningModule from './components/learning/LearningModule';
+import { AIFindings } from './pages/AIFindings';
 
 const queryClient = new QueryClient();
 
@@ -42,6 +43,15 @@ const App: React.FC = () => (
                   } 
                 />
                 <Route 
+                  path="/ai-recommendations" 
+                  element={
+                    <ProtectedRoute requiredRole="medical">
+                      <AIFindings />
+                    </ProtectedRoute>
+                  } 
+                />
+
+                <Route  
                   path="/user2" 
                   element={
                     <ProtectedRoute requiredRole="disposal">

@@ -8,6 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import CreateWasteRequest from '../components/CreateWasteRequest';
 import { Plus, Clock, CheckCircle, AlertTriangle, Leaf, Loader2 } from 'lucide-react';
 import CompletedRequestDetailsModal from '../components/CompletedRequestDetailsModal';
+import { useNavigate } from 'react-router-dom';
+
 
 const MedicalStaffDashboard = () => {
   const { user } = useAuth();
@@ -74,10 +76,15 @@ const MedicalStaffDashboard = () => {
     setIsCompletedDetailsModalOpen(false);
   };
 
+  const navigate = useNavigate();
+  const handleOpenAIRecommendations = () => {
+  navigate('/ai-recommendations'); // or any route you've defined
+};
+
   return (
     <Layout title="Medical Staff Dashboard">
       <div className="space-y-6">
-        {/* Header */}
+        {/* Header
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
@@ -87,7 +94,25 @@ const MedicalStaffDashboard = () => {
             <Plus className="h-4 w-4 mr-2" />
             New Request
           </Button>
-        </div>
+        </div> */}
+
+        {/* Header */}
+<div className="flex justify-between items-center">
+  <div>
+    <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+    <p className="text-gray-600">Welcome back, {user?.firstName} {user?.lastName}</p>
+  </div>
+  <div className="flex space-x-2">
+    <Button onClick={() => setShowCreateForm(true)} className="bg-blue-600 hover:bg-blue-700">
+      <Plus className="h-4 w-4 mr-2" />
+      New Request
+    </Button>
+    <Button onClick={handleOpenAIRecommendations} variant="outline" className="border-blue-600 text-blue-600 hover:bg-blue-50">
+      AI Waste Findings
+    </Button>
+  </div>
+</div>
+
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
